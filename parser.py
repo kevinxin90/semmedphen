@@ -45,7 +45,7 @@ def load_data(data_folder):
                 if semantic_type not in phenotype_related[_item[4]][pred]:
                     phenotype_related[_item[4]][pred][semantic_type] = []
                 assoc = _item[4] + pred + str(_item[1]) + _item[5]
-                if assoc not in unique_assocs:
+                if assoc not in unique_assoc:
                     unique_assoc.add(assoc)
                     phenotype_related[_item[4]][pred][semantic_type].append({'pmid': _item[1].split(';'), 'umls': _item[5][5:]})
             elif _item[5] in group_by_semmantic_dict['phenotypic_feature']:
@@ -60,7 +60,7 @@ def load_data(data_folder):
                 if semantic_type not in phenotype_related[_item[5]][pred]:
                     phenotype_related[_item[5]][pred][semantic_type] = []
                 assoc = _item[5] + pred + str(_item[1]) + _item[4]
-                if assoc not in unique_assocs:
+                if assoc not in unique_assoc:
                     unique_assoc.add(assoc)
                     phenotype_related[_item[5]][pred][semantic_type].append({'pmid': _item[1].split(';'), 'umls': _item[4][5:]})
     for v in phenotype_related.values():
