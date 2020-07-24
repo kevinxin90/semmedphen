@@ -111,7 +111,7 @@ SEMMED_PRED_MAPPING = {
 }
 
 while True:
-    # decrease the maxInt value by factor 10 
+    # decrease the maxInt value by factor 10
     # as long as the OverflowError occurs.
 
     try:
@@ -122,6 +122,31 @@ while True:
 
 
 def load_data(data_folder):
+    def construct_rec(sub_umls, obj_umls, line):
+        if sub_umls not in gene_related:
+            gene_related[sub_umls] = {
+                '_id': sub_umls[5:],
+                'umls': sub_umls[5:],
+                'name': id_type_mapping[sub_umls]['name'],
+                "@type": DOC_TYPE
+            }
+        pred = SEMMED_PRED_MAPPING[line[0]]['self']
+        semantic_type = SEMMED_SEMANTIC_TYPE_MAPPING[id_type_mapping[obj_umls]['type']]
+        if semantic_type:
+            if pred not in gene_related[sub_umls]:
+                gene_related[sub_umls][pred] = {}
+            assoc = sub_umls + pred + str(line[1]) + obj_umls
+            if assoc not in unique_assocs:
+                unique_assocs.add(assoc)
+                if obj_umls not in gene_related[sub_umls][pred]:
+                    gene_related[sub_umls][pred][obj_umls] = {
+                        "pmid": set(),
+                        'umls': obj_umls[5:],
+                        'name': id_type_mapping[obj_umls]['name'],
+                        '@type': semantic_type
+                    }
+                gene_related[sub_umls][pred][obj_umls]["pmid"] = gene_related[sub_umls
+                                                                              ][pred][obj_umls]["pmid"] | set(line[1].split(';'))
     nodes_path = os.path.join(data_folder, "nodes_neo4j.csv")
     edges_path = os.path.join(data_folder, "edges_neo4j.csv")
     group_by_semmantic_dict = defaultdict(list)
@@ -139,40 +164,11 @@ def load_data(data_folder):
         next(csv_reader)
         for _item in csv_reader:
             if _item[4] in group_by_semmantic_dict[SEMMED_TYPE]:
-                if _item[4] not in gene_related:
-                    gene_related[_item[4]] = {'_id': _item[4][5:],
-                                              'umls': _item[4][5:],
-                                              'name': id_type_mapping[_item[4]]['name'],
-                                              "@type": DOC_TYPE}
-                pred = SEMMED_PRED_MAPPING[_item[0]]['self']
-                semantic_type = SEMMED_SEMANTIC_TYPE_MAPPING[id_type_mapping[_item[5]]['type']]
-                if semantic_type:
-                    if pred not in gene_related[_item[4]]:
-                        gene_related[_item[4]][pred] = []
-                    assoc = _item[4] + pred + str(_item[1]) + _item[5]
-                    if assoc not in unique_assocs:
-                        unique_assocs.add(assoc)
-                        gene_related[_item[4]][pred].append({'pmid': _item[1].split(';'),
-                                                            'umls': _item[5][5:],
-                                                            'name': id_type_mapping[_item[5]]['name'],
-                                                            '@type': semantic_type})
+                construct_rec(_item[4], _item[5], _item)
             elif _item[5] in group_by_semmantic_dict[SEMMED_TYPE]:
-                if _item[5] not in gene_related:
-                    gene_related[_item[5]] = {'_id': _item[5][5:],
-                                              'umls': _item[5][5:],
-                                              'name': id_type_mapping[_item[5]]['name'],
-                                              "@type": DOC_TYPE}
-                pred = SEMMED_PRED_MAPPING[_item[0]]['reverse']
-                semantic_type = SEMMED_SEMANTIC_TYPE_MAPPING[id_type_mapping[_item[4]]['type']]
-                if semantic_type:
-                    if pred not in gene_related[_item[5]]:
-                        gene_related[_item[5]][pred] = []
-                    assoc = _item[5] + pred + str(_item[1]) + _item[4]
-                    if assoc not in unique_assocs:
-                        unique_assocs.add(assoc)
-                        gene_related[_item[5]][pred].append({'pmid': _item[1].split(';'),
-                                                            'umls': _item[4][5:],
-                                                            'name': id_type_mapping[_item[4]]['name'],
-                                                            '@type': semantic_type})
+                construct_rec(_item[5], _item[4], _item)
     for v in gene_related.values():
+        for m, n in v.items():
+            if m not in ["_id", "umls", "name", "@type"]:
+                v[m] = n.values()
         yield v
