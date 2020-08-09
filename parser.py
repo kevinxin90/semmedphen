@@ -122,7 +122,7 @@ while True:
 
 
 def load_data(data_folder):
-    def construct_rec(sub_umls, obj_umls, line):
+    def construct_rec(sub_umls, obj_umls, line, reverse=False):
         if sub_umls not in gene_related:
             gene_related[sub_umls] = {
                 '_id': sub_umls[5:],
@@ -130,7 +130,10 @@ def load_data(data_folder):
                 'name': id_type_mapping[sub_umls]['name'],
                 "@type": DOC_TYPE
             }
-        pred = SEMMED_PRED_MAPPING[line[0]]['self']
+        if not reverse:
+            pred = SEMMED_PRED_MAPPING[line[0]]['self']
+        else:
+            pred = SEMMED_PRED_MAPPING[line[0]]['reverse']
         semantic_type = SEMMED_SEMANTIC_TYPE_MAPPING[id_type_mapping[obj_umls]['type']]
         if semantic_type:
             if pred not in gene_related[sub_umls]:
@@ -166,7 +169,7 @@ def load_data(data_folder):
             if _item[4] in group_by_semmantic_dict[SEMMED_TYPE]:
                 construct_rec(_item[4], _item[5], _item)
             elif _item[5] in group_by_semmantic_dict[SEMMED_TYPE]:
-                construct_rec(_item[5], _item[4], _item)
+                construct_rec(_item[5], _item[4], _item, reverse=True)
     for v in gene_related.values():
         for m, n in v.items():
             if m not in ["_id", "umls", "name", "@type"]:
