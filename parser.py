@@ -89,7 +89,7 @@ SEMMED_PRED_MAPPING = {
         "reverse": "is_input_of"
     },
     "CONVERTS_TO": {
-        "self": "derives_info",
+        "self": "derives_into",
         "reverse": "derives_from"
     },
     "MANIFESTATION_OF": {
@@ -168,7 +168,7 @@ def load_data(data_folder):
         for _item in csv_reader:
             if _item[4] in group_by_semmantic_dict[SEMMED_TYPE]:
                 construct_rec(_item[4], _item[5], _item)
-            elif _item[5] in group_by_semmantic_dict[SEMMED_TYPE]:
+            if _item[5] in group_by_semmantic_dict[SEMMED_TYPE]:
                 construct_rec(_item[5], _item[4], _item, reverse=True)
     for v in gene_related.values():
         for m, n in v.items():
